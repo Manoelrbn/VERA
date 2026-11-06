@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+backend/vera.db
+
+# Segredos
+.env
+
+# Node
+node_modules/
+dist/

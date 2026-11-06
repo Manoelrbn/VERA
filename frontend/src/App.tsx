@@ -1,65 +1,49 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import type { ReactNode } from 'react';
+import { ProvedorSessao } from './lib/sessao';
+import { useSessao } from './lib/contexto';
+import { Estrutura } from './components/Estrutura';
 import { Landing } from './pages/Landing';
 import { Cadastro } from './pages/Cadastro';
 import { Login } from './pages/Login';
-import { Dashboard } from './pages/Dashboard';
+import { Painel } from './pages/Painel';
+import { EditalPagina } from './pages/Edital';
+import { Praticar } from './pages/Praticar';
+import { Conversa } from './pages/Conversa';
+import { Ajuda } from './pages/Ajuda';
 
-// 1. componente inteligente para escutar a mudança de rotas
-function RotasComLoading() {
-  const location = useLocation(); // O "radar" que sabe em qual página estamos
-  const [isLoading, setIsLoading] = useState(false);
-
-  // 2. Toda vez que a rota (location.pathname) mudar, esse código roda
-  useEffect(() => {
-    setIsLoading(true); // Liga a tela de loading
-    
-    // Simula um tempo de processamento de IA (400ms)
-    const timer = setTimeout(() => {
-      setIsLoading(false); // Desliga a tela de loading
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [location.pathname]);
-
-  return (
-    <>
-      {/* 3. A NOSSA TELA DE LOADING (Aparece por cima de tudo com z-[9999]) */}
-      <div 
-        className={`fixed inset-0 z-[9999] bg-veraDarkBg flex flex-col items-center justify-center transition-opacity duration-300 ${
-          isLoading ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-      >
-        <div className="relative flex items-center justify-center">
-          {/* Círculo neon girando */}
-          <div className="w-16 h-16 border-4 border-slate-800 border-t-veraCyan rounded-full animate-spin"></div>
-          {/* O "V" da Vera fixo no meio do spinner */}
-          <span className="absolute text-veraCyan font-poppins font-extrabold text-xl">V</span>
-        </div>
-        <span className="mt-6 text-[10px] font-bold text-veraCyan tracking-[0.2em] uppercase animate-pulse">
-          Sincronizando
-        </span>
-      </div>
-
-      {/* 4. AS ROTAS DO APP */}
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/cadastro" element={<Cadastro />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-      </Routes>
-    </>
-  );
+function SoLogado({ children }: { children: ReactNode }) {
+  const { usuario, carregando } = useSessao();
+  if (carregando) return null;
+  return usuario ? children : <Navigate to="/entrar" replace />;
 }
 
-// 5. O Componente App original apenas "envelopa" tudo com o BrowserRouter
-export function App() {
-  return (
-    <BrowserRouter>
-      <RotasComLoading />
-    </BrowserRouter>
-  );
+function SoVisitante({ children }: { children: ReactNode }) {
+  const { usuario, carregando } = useSessao();
+  if (carregando) return null;
+  return usuario ? <Navigate to="/painel" replace /> : children;
 }
 
-export default App;
+export default function App() {
+  return (
+    <ProvedorSessao>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/entrar" element={<SoVisitante><Login /></SoVisitante>} />
+          <Route path="/cadastro" element={<SoVisitante><Cadastro /></SoVisitante>} />
+          <Route element={<SoLogado><Estrutura /></SoLogado>}>
+            <Route path="/painel" element={<Painel />} />
+            <Route path="/editais/:id" element={<EditalPagina />} />
+            <Route path="/editais/:id/praticar" element={<Praticar />} />
+            <Route path="/conversa" element={<Conversa />} />
+          </Route>
+          {/* A ajuda fica aberta também para quem não conseguiu entrar. */}
+          <Route path="/ajuda" element={<Ajuda />} />
+          <Route path="/login" element={<Navigate to="/entrar" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </ProvedorSessao>
+  );
+}

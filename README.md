@@ -1,163 +1,81 @@
-# 📚 Edital-Pro
+# Vera
 
-Plataforma inteligente para análise de editais utilizando Inteligência Artificial.
+Estudo para concursos públicos a partir do edital. A pessoa envia o PDF do edital e a Vera:
 
-O objetivo do projeto é facilitar a leitura, interpretação e estudo de editais de concursos públicos através da extração automática de informações relevantes, geração de resumos e criação de questões para treinamento.
+- resume o concurso em linguagem simples;
+- separa datas (com destaque para as que não podem passar), cargos, requisitos e etapas;
+- organiza o conteúdo programático por matéria;
+- gera questões inéditas no estilo da banca, corrige na hora e explica cada alternativa;
+- conversa com o aluno para tirar dúvidas, usando o edital como contexto.
 
----
+Tem também atendimento humano (página Ajuda, com WhatsApp, e-mail e formulário) e limites por plano (grátis e Pro).
 
-## 🚀 Funcionalidades MVP
+## Estrutura
 
-### 📄 Análise de Editais
-
-- Upload de arquivos PDF
-- Extração automática de texto
-- Resumo automático do edital
-- Identificação de datas importantes
-- Checklist de requisitos
-- Busca por palavras-chave
-
-### 🤖 Inteligência Artificial
-
-- Geração automática de 10 questões com base no edital
-- Usuário responde às questões
-- Correção automática das respostas
-- Explicação das respostas corretas
-
----
-
-## 🏗️ Arquitetura
-
-```text
-Usuário
-   │
-   ▼
-Frontend (React)
-   │
-   ▼
-Backend (Node.js)
-   │
-   ├── PostgreSQL
-   │
-   ├── Serviço Python (FastAPI)
-   │       ├── Extração de texto
-   │       ├── Limpeza do conteúdo
-   │       └── Processamento
-   │
-   └── OpenAI / Modelos Open Source
-           ├── Resumos
-           ├── Questões
-           ├── Correções
-           └── Feedbacks
+```
+backend/    API em Python (FastAPI): contas, editais, IA, questões, conversa e suporte
+frontend/   Site em React + TypeScript + Vite + Tailwind
+database/   (reservado para migrations)
+docs/
 ```
 
----
+Escolhemos um backend só, em Python, em vez de Node + Python: a leitura de PDF e a IA já são em Python,
+e com uma equipe de duas pessoas, menos peças significa entregar mais rápido.
 
-## 🛠️ Tecnologias
+## Como rodar no seu computador
 
-### Frontend
+Você precisa de Python 3.11+ e Node 20+.
 
-- React
-- TypeScript
-- Vite
+### 1. Backend
 
-### Backend
-
-- Node.js
-- Express
-
-### IA e Processamento
-
-- Python
-- FastAPI
-
-### Banco de Dados
-
-- PostgreSQL
-
-### Inteligência Artificial
-
-- OpenAI API
-- Modelos Open Source (futuro)
-
----
-
-## 📁 Estrutura do Projeto
-
-```text
-Edital-Pro/
-│
-├── frontend/          # Interface React
-├── api-node/          # API principal Node.js
-├── ai-service/        # Serviço Python/FastAPI
-├── database/          # Scripts SQL e migrations
-├── docs/              # Documentação
-└── README.md
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate          # no Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env               # depois edite o .env
+uvicorn app.main:app --reload
 ```
 
----
+A API sobe em http://localhost:8000 e a documentação interativa fica em http://localhost:8000/docs.
 
-## 🎯 Roadmap
+**Modo demonstração:** sem `OPENAI_API_KEY` no `.env`, a Vera devolve um edital e questões de exemplo.
+Dá para desenvolver o site inteiro sem gastar crédito. Com a chave preenchida, tudo passa a usar a IA de verdade.
 
-### Fase 1 — MVP
+Sem `DATABASE_URL`, o backend usa um arquivo SQLite (`vera.db`). Para produção, use Postgres.
 
-- [ ] Cadastro de usuários
-- [ ] Login com JWT
-- [ ] Upload de PDF
-- [ ] Extração de texto
-- [ ] Resumo automático
-- [ ] Datas importantes
-- [ ] Checklist de requisitos
-- [ ] Busca por palavras-chave
-- [ ] Geração de 10 questões
-- [ ] Correção automática
+### 2. Frontend
 
-### Fase 2
+```bash
+cd frontend
+npm install
+cp .env.example .env
+npm run dev
+```
 
-- [ ] Dashboard de desempenho
-- [ ] Histórico de análises
-- [ ] Estatísticas de estudo
+O site abre em http://localhost:5173.
 
-### Fase 3
+## Onde mexer
 
-- [ ] Comparação entre editais
-- [ ] Recomendação de editais por perfil
-- [ ] Alertas automáticos
+| Quero mudar…                                     | Arquivo                                   |
+|--------------------------------------------------|-------------------------------------------|
+| O jeito da Vera falar e ensinar                  | `backend/app/ia.py` (`PERSONALIDADE_VERA`) |
+| O que é extraído do edital                       | `backend/app/ia.py` (`PROMPT_ANALISE`)     |
+| Como as questões são geradas                     | `backend/app/ia.py` (`PROMPT_QUESTOES`)    |
+| Limites do plano grátis                          | `backend/app/config.py`                    |
+| Cores e fontes                                   | `frontend/src/index.css`                   |
+| Perguntas frequentes e textos de ajuda           | `frontend/src/pages/Ajuda.tsx`             |
 
-### Fase 4
+## Próximos passos
 
-- [ ] Assinaturas premium
-- [ ] Notificações por Email
-- [ ] API pública
+- [ ] Pagamento do plano Pro (Mercado Pago ou Stripe, com Pix) e webhook que muda `usuario.plano` para `pro`
+- [ ] Recuperação de senha por e-mail
+- [ ] Avisar a equipe por e-mail quando chegar um contato de suporte (`backend/app/routers/suporte.py`)
+- [ ] Base de leis atualizadas para a Vera citar artigos com segurança (RAG)
+- [ ] Migrations com Alembic no lugar do `create_all`
+- [ ] Simulado completo cronometrado, misturando matérias com os pesos do edital
 
----
-
-## 🔄 Fluxo Principal
-
-1. Usuário envia um edital em PDF.
-2. O serviço Python extrai e processa o texto.
-3. O Backend envia o conteúdo para a IA.
-4. A IA gera:
-   - Resumo
-   - Datas importantes
-   - Checklist
-   - Questões
-5. Os resultados são salvos no PostgreSQL.
-6. O usuário responde às questões.
-7. A IA corrige e fornece feedback.
-
----
-
-## 👨‍💻 Equipe
+## Equipe
 
 - Manoel Bezerra
 - Bernardo Milagres
-  
-
----
-
-## 📌 Status
-
-🚧 Projeto em desenvolvimento.
-
-Versão atual: **MVP**

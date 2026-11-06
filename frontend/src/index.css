@@ -1,32 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap');
 @import "tailwindcss";
 
-/* Importando as fontes do Google */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Lato:wght@400;700&display=swap');
-
+/*
+  Identidade da Vera: um caderno de estudos bem cuidado.
+  Papel frio, tinta azul-marinho e o marca-texto amarelo que todo concurseiro usa.
+*/
 @theme {
-  --color-veraNavy: #0A2540;
-  --color-veraNavyLight: #11355A;
-  --color-veraCyan: #00D4B2;
-  --color-veraOrange: #FF922B;
-  --color-veraDarkBg: #091522;
-  --color-veraBgLight: #F8FAFC;
-  
-  --font-sans: 'Lato', sans-serif;
-  --font-poppins: 'Poppins', sans-serif;
+  --color-papel: #F5F6F8;
+  --color-folha: #FFFFFF;
+  --color-tinta: #16233A;
+  --color-grafite: #556072;
+  --color-linha: #D9DEE6;
+  --color-grifo: #FFE45C;
+  --color-grifo-suave: #FFF6BF;
+  --color-acerto: #1D7348;
+  --color-erro: #B3261E;
+
+  --font-sans: 'Figtree', system-ui, sans-serif;
+  --font-leitura: 'Newsreader', Georgia, serif;
 }
 
+html { scroll-behavior: smooth; }
 body {
-    scroll-behavior: smooth;
-    background-color: var(--color-veraDarkBg);
+  background: var(--color-papel);
+  color: var(--color-tinta);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
-@layer utilities {
-    .text-glow {
-        text-shadow: 0 0 10px rgba(0, 212, 178, 0.3);
-    }
-    .card-blur {
-        background: rgba(10, 37, 64, 0.7);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-    }
+:focus-visible { outline: 2px solid var(--color-tinta); outline-offset: 2px; }
+
+/* O traço de marca-texto: levemente torto, como feito à mão. */
+.grifo {
+  background-image: linear-gradient(100deg, transparent 0.3em, var(--color-grifo) 0.4em, var(--color-grifo) calc(100% - 0.4em), transparent calc(100% - 0.25em));
+  background-size: 100% 0.9em;
+  background-position: 0 70%;
+  background-repeat: no-repeat;
+  padding: 0 0.15em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
+
+/* Na página inicial, os grifos são "passados" uma única vez ao carregar. */
+.grifo-animado {
+  background-size: 0% 0.9em;
+  animation: passar-grifo 0.7s ease-out forwards;
+}
+@keyframes passar-grifo { to { background-size: 100% 0.9em; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .grifo-animado { animation: none; background-size: 100% 0.9em; }
+  html { scroll-behavior: auto; }
+}
+
+/* Texto longo para ler com calma: resumos, explicações e respostas da Vera. */
+.leitura { font-family: var(--font-leitura); font-size: 1.125rem; line-height: 1.65; }
+
+.botao {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  border-radius: 0.5rem; padding: 0.7rem 1.15rem; font-weight: 600; font-size: 0.95rem;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+.botao:disabled { opacity: 0.55; cursor: not-allowed; }
+.botao-principal { background: var(--color-tinta); color: white; }
+.botao-principal:hover:not(:disabled) { background: #24375A; }
+.botao-secundario { border: 1px solid var(--color-linha); background: var(--color-folha); }
+.botao-secundario:hover:not(:disabled) { border-color: var(--color-tinta); }
+
+.campo {
+  width: 100%; border: 1px solid var(--color-linha); background: var(--color-folha);
+  border-radius: 0.5rem; padding: 0.7rem 0.9rem; font-size: 1rem;
+}
+.campo:focus { outline: none; border-color: var(--color-tinta); box-shadow: 0 0 0 3px #16233A1A; }
