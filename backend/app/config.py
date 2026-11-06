@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     jwt_horas_validade: int = 24 * 7
 
     openai_api_key: str = ""
+    # Vazio = OpenAI. Preencha para usar outro provedor compatível com a API da OpenAI
+    # (ex.: Google Gemini no plano gratuito, para testes).
+    openai_base_url: str = ""
     openai_modelo_principal: str = "gpt-4o"
     openai_modelo_rapido: str = "gpt-4o-mini"
 

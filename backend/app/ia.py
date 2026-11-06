@@ -9,7 +9,11 @@ from openai import OpenAI
 
 from .config import settings
 
-_cliente = OpenAI(api_key=settings.openai_api_key) if not settings.modo_demo else None
+_cliente = (
+    OpenAI(api_key=settings.openai_api_key, base_url=settings.openai_base_url or None)
+    if not settings.modo_demo
+    else None
+)
 
 
 # ---------------------------------------------------------------------------

@@ -40,7 +40,12 @@ export async function api<T>(caminho: string, opcoes: RequestInit = {}): Promise
   try {
     resposta = await fetch(`${BASE}${caminho}`, { ...opcoes, headers });
   } catch {
-    throw new ErroApi(0, 'Parece que a internet caiu. Confira sua conexão e tente de novo.');
+    // O fetch só falha assim quando não houve resposta nenhuma: sem internet,
+    // servidor fora do ar ou bloqueio de CORS. Só a primeira depende do aluno.
+    const mensagem = navigator.onLine
+      ? 'Não conseguimos falar com o servidor da Vera agora. Tente de novo em instantes.'
+      : 'Parece que a internet caiu. Confira sua conexão e tente de novo.';
+    throw new ErroApi(0, mensagem);
   }
 
   if (resposta.status === 204) return undefined as T;
