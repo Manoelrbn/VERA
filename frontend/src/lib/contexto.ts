@@ -6,7 +6,8 @@ export type Sessao = {
   uso: Uso | null;
   carregando: boolean;
   entrar: (email: string, senha: string) => Promise<void>;
-  cadastrar: (nome: string, email: string, senha: string) => Promise<void>;
+  /** Última etapa do cadastro: confere o código do e-mail e já entra na conta. */
+  confirmarCadastro: (email: string, codigo: string) => Promise<void>;
   sair: () => void;
   atualizar: () => Promise<void>;
 };

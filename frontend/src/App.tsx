@@ -8,7 +8,7 @@ import { Cadastro } from './pages/Cadastro';
 import { Login } from './pages/Login';
 import { Painel } from './pages/Painel';
 import { EditalPagina } from './pages/Edital';
-import { Praticar } from './pages/Praticar';
+import { Questoes, RedirecionarPraticar } from './pages/Questoes';
 import { Conversa } from './pages/Conversa';
 import { Ajuda } from './pages/Ajuda';
 
@@ -35,7 +35,8 @@ export default function App() {
           <Route element={<SoLogado><Estrutura /></SoLogado>}>
             <Route path="/painel" element={<Painel />} />
             <Route path="/editais/:id" element={<EditalPagina />} />
-            <Route path="/editais/:id/praticar" element={<Praticar />} />
+            <Route path="/questoes" element={<Questoes />} />
+            <Route path="/editais/:id/praticar" element={<RedirecionarPraticar />} />
             <Route path="/conversa" element={<Conversa />} />
           </Route>
           {/* A ajuda fica aberta também para quem não conseguiu entrar. */}

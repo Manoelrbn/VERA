@@ -5,8 +5,25 @@ from pydantic import BaseModel, EmailStr, Field
 
 class CadastroIn(BaseModel):
     nome: str = Field(min_length=2, max_length=120)
+    cpf: str = Field(min_length=11, max_length=14)  # aceita com ou sem pontuação
     email: EmailStr
     senha: str = Field(min_length=8, max_length=128)
+    senha_confirmacao: str
+
+
+class CadastroIniciadoOut(BaseModel):
+    email: str
+    validade_minutos: int
+    reenviar_em_segundos: int
+
+
+class ConfirmarCadastroIn(BaseModel):
+    email: EmailStr
+    codigo: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+
+
+class ReenviarCodigoIn(BaseModel):
+    email: EmailStr
 
 
 class LoginIn(BaseModel):

@@ -24,6 +24,8 @@ function mensagemDeErro(status: number, corpo: unknown): string {
     if (campo === 'email') return 'Esse e-mail não parece válido. Confira se digitou certinho.';
     if (campo === 'senha') return 'A senha precisa ter pelo menos 8 caracteres.';
     if (campo === 'nome') return 'Escreva seu nome para a gente saber como te chamar.';
+    if (campo === 'cpf') return 'Esse CPF não é válido. Confira os números.';
+    if (campo === 'codigo') return 'O código tem 6 números. Confira no seu e-mail.';
     return 'Algum campo ficou incompleto. Confira e tente de novo.';
   }
   if (status >= 500) return 'Tivemos um problema do nosso lado. Tente de novo em instantes.';

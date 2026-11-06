@@ -24,12 +24,16 @@ export function TelaDeAcesso({ titulo, subtitulo, children, rodape }: {
   );
 }
 
-export function Campo({ rotulo, dica, ...props }: { rotulo: string; dica?: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+export function Campo({ rotulo, dica, erro, className = 'campo', ...props }: {
+  rotulo: string; dica?: string; erro?: string;
+} & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="block">
       <span className="mb-1.5 block text-sm font-medium">{rotulo}</span>
-      <input className="campo" {...props} />
-      {dica && <span className="mt-1.5 block text-xs text-grafite">{dica}</span>}
+      <input className={`${className} ${erro ? '!border-erro' : ''}`} {...props} />
+      {erro
+        ? <span className="mt-1.5 block text-xs text-erro">{erro}</span>
+        : dica && <span className="mt-1.5 block text-xs text-grafite">{dica}</span>}
     </label>
   );
 }

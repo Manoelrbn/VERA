@@ -38,7 +38,7 @@ export function ProvedorSessao({ children }: { children: ReactNode }) {
   const valor: Sessao = {
     usuario, uso, carregando, atualizar,
     entrar: (email, senha) => iniciar('/auth/login', { email, senha }),
-    cadastrar: (nome, email, senha) => iniciar('/auth/cadastro', { nome, email, senha }),
+    confirmarCadastro: (email, codigo) => iniciar('/auth/cadastro/confirmar', { email, codigo }),
     sair: () => { token.apagar(); setUsuario(null); setUso(null); },
   };
   return <ContextoSessao.Provider value={valor}>{children}</ContextoSessao.Provider>;

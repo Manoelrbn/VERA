@@ -109,7 +109,7 @@ export function EditalPagina() {
         <h1 className="mt-2 text-3xl font-bold tracking-tight">{a.titulo}</h1>
         <p className="mt-2 text-grafite">{[a.orgao, a.banca && `Banca ${a.banca}`].filter(Boolean).join(', ')}</p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link to={`/editais/${id}/praticar`} className="botao botao-principal">Praticar questões</Link>
+          <Link to={`/questoes?edital=${id}`} className="botao botao-principal">Praticar questões</Link>
           <Link to={`/conversa?edital=${id}`} className="botao botao-secundario">Tirar dúvida sobre este edital</Link>
         </div>
       </header>
@@ -165,7 +165,7 @@ export function EditalPagina() {
               <ul className="mt-3 flex-1 space-y-1 text-sm leading-relaxed text-grafite">
                 {m.topicos.map((t) => <li key={t}>{t}</li>)}
               </ul>
-              <Link to={`/editais/${id}/praticar?materia=${encodeURIComponent(m.nome)}`} className="mt-4 text-sm font-semibold underline underline-offset-4">
+              <Link to={`/questoes?edital=${id}&materia=${encodeURIComponent(m.nome)}`} className="mt-4 text-sm font-semibold underline underline-offset-4">
                 Praticar {m.nome}
               </Link>
             </div>

@@ -28,6 +28,18 @@ class Settings(BaseSettings):
 
     tamanho_max_pdf_mb: int = 25
 
+    # Envio de e-mail (código de confirmação do cadastro).
+    # Sem SMTP_HOST, o código é escrito no terminal do backend, para desenvolver sem servidor de e-mail.
+    smtp_host: str = ""
+    smtp_porta: int = 587
+    smtp_usuario: str = ""
+    smtp_senha: str = ""
+    smtp_remetente: str = "Vera <nao-responda@vera.com.br>"
+
+    codigo_validade_minutos: int = 15
+    codigo_max_tentativas: int = 5
+    codigo_intervalo_reenvio_segundos: int = 60
+
     @property
     def url_banco(self) -> str:
         return self.database_url or "sqlite:///./vera.db"

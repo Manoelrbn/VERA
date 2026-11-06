@@ -4,6 +4,7 @@ import { primeiroNome, useSessao } from '../lib/contexto';
 
 const links = [
   { para: '/painel', texto: 'Meus editais' },
+  { para: '/questoes', texto: 'Questões' },
   { para: '/conversa', texto: 'Conversar com a Vera' },
   { para: '/ajuda', texto: 'Ajuda' },
 ];

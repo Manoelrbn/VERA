@@ -1,9 +1,50 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { useSessao } from '../lib/contexto';
-import type { Correcao, Edital, Questao } from '../lib/tipos';
+import type { Correcao, Desempenho, Edital, EditalResumo, Questao } from '../lib/tipos';
 import { Aviso } from '../components/Aviso';
+
+/** Endereço antigo (/editais/:id/praticar): manda para a aba Questões já com o edital escolhido. */
+export function RedirecionarPraticar() {
+  const { id = '' } = useParams();
+  const [busca] = useSearchParams();
+  const materia = busca.get('materia');
+  return <Navigate replace to={`/questoes?edital=${id}${materia ? `&materia=${encodeURIComponent(materia)}` : ''}`} />;
+}
+
+function PainelDesempenho({ desempenho }: { desempenho: Desempenho | null }) {
+  if (!desempenho?.respondidas) {
+    return (
+      <p className="rounded-lg border border-linha bg-folha p-5 text-sm leading-relaxed text-grafite">
+        Seu desempenho aparece aqui depois da primeira rodada: quantas você acertou e em quais matérias vale reforçar.
+      </p>
+    );
+  }
+  return (
+    <div className="rounded-lg border border-linha bg-folha p-5">
+      <p className="text-3xl font-bold">{desempenho.aproveitamento}%</p>
+      <p className="mt-1 text-sm text-grafite">
+        de acerto em {desempenho.respondidas} {desempenho.respondidas === 1 ? 'questão' : 'questões'}
+      </p>
+      <ul className="mt-5 space-y-3">
+        {desempenho.materias.map((m) => (
+          <li key={m.materia} className="text-sm">
+            <div className="flex justify-between gap-3">
+              <span className="font-medium">{m.materia}</span>
+              <span className="shrink-0 text-grafite">{m.acertos}/{m.respondidas}</span>
+            </div>
+            <div className="mt-1 h-1.5 rounded-full bg-linha" aria-hidden="true">
+              <div className={`h-1.5 rounded-full ${m.aproveitamento >= 70 ? 'bg-acerto' : m.aproveitamento >= 40 ? 'bg-tinta' : 'bg-erro'}`}
+                style={{ width: `${m.aproveitamento}%` }} />
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-4 text-xs text-grafite">Da matéria mais fraca para a mais forte.</p>
+    </div>
+  );
+}
 
 type Resultado = { questao: Questao; escolhida: string; correcao: Correcao };
 
@@ -15,10 +56,12 @@ function comentarioFinal(acertos: number, total: number) {
   return 'Essa matéria ainda está pesada, e tudo bem: é para isso que serve treinar. Que tal pedir para a Vera explicar a base antes da próxima rodada?';
 }
 
-export function Praticar() {
-  const { id = '' } = useParams();
-  const [busca] = useSearchParams();
+export function Questoes() {
+  const [busca, setBusca] = useSearchParams();
   const { atualizar } = useSessao();
+  const [editais, setEditais] = useState<EditalResumo[] | null>(null);
+  const [desempenho, setDesempenho] = useState<Desempenho | null>(null);
+  const id = busca.get('edital') ?? '';
   const [edital, setEdital] = useState<Edital | null>(null);
   const [materia, setMateria] = useState(busca.get('materia') ?? '');
   const [quantidade, setQuantidade] = useState(5);
@@ -31,12 +74,42 @@ export function Praticar() {
   const [gerando, setGerando] = useState(false);
   const [erro, setErro] = useState('');
 
+  const prontos = editais?.filter((e) => e.status === 'pronto') ?? [];
+
   useEffect(() => {
+    api<EditalResumo[]>('/editais').then(setEditais).catch((e) => setErro(e.message));
+  }, []);
+
+  // Desempenho atualiza a cada rodada nova e ao terminar uma.
+  const fimDaRodada = questoes !== null && indice >= questoes.length;
+  useEffect(() => {
+    api<Desempenho>('/desempenho').then(setDesempenho).catch(() => {});
+  }, [questoes, fimDaRodada]);
+
+  // Sem edital escolhido no endereço, abre no mais recente que já foi lido.
+  useEffect(() => {
+    if (!id && editais) {
+      const primeiro = editais.find((e) => e.status === 'pronto');
+      if (primeiro) setBusca({ edital: String(primeiro.id) }, { replace: true });
+    }
+  }, [id, editais, setBusca]);
+
+  useEffect(() => {
+    if (!id) return;
     api<Edital>(`/editais/${id}`).then((e) => {
       setEdital(e);
-      if (!busca.get('materia') && e.analise?.materias[0]) setMateria(e.analise.materias[0].nome);
+      const pedida = busca.get('materia');
+      const nomes = e.analise?.materias.map((m) => m.nome) ?? [];
+      setMateria(pedida && nomes.includes(pedida) ? pedida : nomes[0] ?? '');
     }).catch((e) => setErro(e.message));
   }, [id, busca]);
+
+  function trocarEdital(novo: string) {
+    setQuestoes(null);
+    setEdital(null);
+    setErro('');
+    setBusca({ edital: novo });
+  }
 
   async function gerar() {
     setErro('');
@@ -73,16 +146,46 @@ export function Praticar() {
     setCorrecao(null);
   }
 
-  if (!edital) return erro ? <Aviso>{erro}</Aviso> : <p className="text-grafite">Carregando…</p>;
+  if (editais === null) return erro ? <Aviso>{erro}</Aviso> : <p className="text-grafite">Carregando…</p>;
+
+  if (prontos.length === 0) {
+    return (
+      <div className="max-w-xl">
+        <h1 className="text-3xl font-bold tracking-tight">Questões</h1>
+        <p className="leitura mt-3">
+          {editais.length
+            ? 'A Vera ainda está lendo seu edital. Assim que terminar, as questões ficam disponíveis aqui.'
+            : 'As questões são montadas a partir do edital do seu concurso. Envie o PDF do edital e a Vera cria questões no estilo da sua banca.'}
+        </p>
+        <Link to="/painel" className="botao botao-principal mt-6">{editais.length ? 'Ver meus editais' : 'Enviar meu edital'}</Link>
+      </div>
+    );
+  }
 
   // 1. Escolher o que praticar
   if (!questoes) {
     return (
+      <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr]">
       <div className="max-w-xl">
-        <Link to={`/editais/${id}`} className="text-sm text-grafite hover:text-tinta">{edital.analise?.titulo}</Link>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight">Praticar questões</h1>
-        <p className="mt-2 text-grafite">Questões inéditas no estilo {edital.analise?.banca ? `da ${edital.analise.banca}` : 'da sua banca'}, com explicação de cada alternativa.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Questões</h1>
+        <p className="mt-2 text-grafite">
+          Questões inéditas no estilo {edital?.analise?.banca ? `da ${edital.analise.banca}` : 'da sua banca'}, com explicação de cada alternativa.
+        </p>
         <div className="mt-8 space-y-6">
+          {prontos.length > 1 ? (
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium">Concurso</span>
+              <select className="campo" value={id} onChange={(e) => trocarEdital(e.target.value)}>
+                {prontos.map((e) => <option key={e.id} value={e.id}>{e.titulo}</option>)}
+              </select>
+            </label>
+          ) : (
+            <div>
+              <span className="mb-1.5 block text-sm font-medium">Concurso</span>
+              <p className="font-medium">{prontos[0].titulo}</p>
+            </div>
+          )}
+          {!edital ? <p className="text-grafite">Carregando as matérias…</p> : (<>
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium">Matéria</span>
             <select className="campo" value={materia} onChange={(e) => setMateria(e.target.value)}>
@@ -110,8 +213,14 @@ export function Praticar() {
           <button onClick={gerar} disabled={gerando || !materia} className="botao botao-principal">
             {gerando ? 'Montando suas questões…' : 'Começar'}
           </button>
-          {gerando && <p className="text-sm text-grafite">Isso leva uns 15 segundos. A Vera está escrevendo questões novas para você.</p>}
+          {gerando && <p className="text-sm text-grafite">Isso pode levar até um minuto. A Vera está escrevendo questões novas para você.</p>}
+          </>)}
         </div>
+      </div>
+      <aside>
+        <h2 className="mb-4 text-lg font-semibold">Seu desempenho</h2>
+        <PainelDesempenho desempenho={desempenho} />
+      </aside>
       </div>
     );
   }

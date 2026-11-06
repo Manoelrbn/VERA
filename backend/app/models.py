@@ -16,11 +16,32 @@ class Usuario(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     nome: Mapped[str] = mapped_column(String(120))
     email: Mapped[str] = mapped_column(String(200), unique=True, index=True)
+    # Só dígitos. Pode ser nulo em contas criadas antes de o CPF passar a ser pedido.
+    cpf: Mapped[str | None] = mapped_column(String(11), unique=True, index=True, nullable=True)
     senha_hash: Mapped[str] = mapped_column(String(200))
     plano: Mapped[str] = mapped_column(String(20), default="gratis")  # gratis | pro
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=agora)
 
     editais: Mapped[list["Edital"]] = relationship(back_populates="usuario", cascade="all, delete-orphan")
+
+
+class CadastroPendente(Base):
+    """Cadastro esperando a pessoa digitar o código que chegou no e-mail.
+
+    A conta (Usuario) só é criada depois da confirmação, então e-mail que ninguém
+    confirmou não ocupa espaço nem bloqueia um cadastro futuro.
+    """
+    __tablename__ = "cadastros_pendentes"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(200), unique=True, index=True)
+    nome: Mapped[str] = mapped_column(String(120))
+    cpf: Mapped[str] = mapped_column(String(11))
+    senha_hash: Mapped[str] = mapped_column(String(200))
+    codigo_hash: Mapped[str] = mapped_column(String(64))
+    tentativas: Mapped[int] = mapped_column(Integer, default=0)
+    expira_em: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    enviado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=agora)
 
 
 class Edital(Base):
